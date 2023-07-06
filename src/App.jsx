@@ -30,6 +30,8 @@ const getPreparedProducts = (
     userFilter,
     productFilter,
     categoryFilter,
+    sortField,
+    isReversed,
   },
 ) => {
   let preparedProducts = [...productsForFilter];
@@ -54,6 +56,25 @@ const getPreparedProducts = (
     ));
   }
 
+  if (sortField) {
+    preparedProducts.sort((product1, product2) => {
+      switch (sortField) {
+        case 'ID':
+          return product1.id - product2.id;
+        case 'Product':
+        case 'Category':
+        case 'User':
+          return product1.name.localeCompare(product2.name);
+        default:
+          return 0;
+      }
+    });
+  }
+
+  if (isReversed) {
+    preparedProducts.reverse();
+  }
+
   return preparedProducts;
 };
 
@@ -61,6 +82,8 @@ export const App = () => {
   const [userFilter, setUserFilter] = useState('');
   const [productFilter, setProductFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState([]);
+  const [sortField, setSortField] = useState('');
+  const [isReversed, setIsReversed] = useState(false);
 
   const visibleProducts = getPreparedProducts(
     products,
@@ -68,6 +91,8 @@ export const App = () => {
       userFilter,
       productFilter,
       categoryFilter,
+      sortField,
+      isReversed,
     },
   );
 
@@ -95,6 +120,52 @@ export const App = () => {
     }
   };
 
+  const setSortIcons = (sortName) => {
+    if (sortName === sortField && !isReversed) {
+      return (
+        <a
+          href="#/"
+          onClick={() => {
+            setSortField(sortName);
+            setIsReversed(true);
+          }}
+        >
+          <span className="icon">
+            <i data-cy="SortIcon" className="fas fa-sort-up" />
+          </span>
+        </a>
+      );
+    }
+
+    if (sortName === sortField && isReversed) {
+      return (
+        <a
+          href="#/"
+          onClick={() => {
+            setSortField('');
+            setIsReversed(false);
+          }}
+        >
+          <span className="icon">
+            <i data-cy="SortIcon" className="fas fa-sort-down" />
+          </span>
+        </a>
+      );
+    }
+
+    return (
+      <a
+        href="#/"
+        onClick={() => setSortField(sortName)}
+      >
+        <span className="icon">
+          <i data-cy="SortIcon" className="fas fa-sort" />
+        </span>
+      </a>
+
+    );
+  };
+
   const ProductList = ({ productsToShow }) => (
     <table
       data-cy="ProductTable"
@@ -106,11 +177,7 @@ export const App = () => {
             <span className="is-flex is-flex-wrap-nowrap">
               ID
 
-              <a href="#/">
-                <span className="icon">
-                  <i data-cy="SortIcon" className="fas fa-sort" />
-                </span>
-              </a>
+              {setSortIcons('ID')}
             </span>
           </th>
 
@@ -118,11 +185,7 @@ export const App = () => {
             <span className="is-flex is-flex-wrap-nowrap">
               Product
 
-              <a href="#/">
-                <span className="icon">
-                  <i data-cy="SortIcon" className="fas fa-sort-down" />
-                </span>
-              </a>
+              {setSortIcons('Product')}
             </span>
           </th>
 
@@ -130,11 +193,7 @@ export const App = () => {
             <span className="is-flex is-flex-wrap-nowrap">
               Category
 
-              <a href="#/">
-                <span className="icon">
-                  <i data-cy="SortIcon" className="fas fa-sort-up" />
-                </span>
-              </a>
+              {setSortIcons('Category')}
             </span>
           </th>
 
@@ -142,11 +201,7 @@ export const App = () => {
             <span className="is-flex is-flex-wrap-nowrap">
               User
 
-              <a href="#/">
-                <span className="icon">
-                  <i data-cy="SortIcon" className="fas fa-sort" />
-                </span>
-              </a>
+              {setSortIcons('User')}
             </span>
           </th>
         </tr>
