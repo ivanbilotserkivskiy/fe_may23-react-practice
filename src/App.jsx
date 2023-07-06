@@ -24,12 +24,23 @@ const products = productsFromServer.map((product) => {
   };
 });
 
-const getPreparedProducts = (productsForFilter, { userFilter }) => {
+const getPreparedProducts = (
+  productsForFilter,
+  { userFilter, productFilter },
+) => {
   let preparedProducts = [...productsForFilter];
 
   if (userFilter) {
-    preparedProducts = products.filter(product => (
+    preparedProducts = preparedProducts.filter(product => (
       product.userName === userFilter
+    ));
+  }
+
+  if (productFilter) {
+    const lowerFilter = productFilter.toLowerCase();
+
+    preparedProducts = preparedProducts.filter(product => (
+      product.name.toLowerCase().includes(lowerFilter)
     ));
   }
 
@@ -37,9 +48,114 @@ const getPreparedProducts = (productsForFilter, { userFilter }) => {
 };
 
 export const App = () => {
-  const [userFilter, setUserFilter] = useState('Roma');
+  const [userFilter, setUserFilter] = useState('');
+  const [productFilter, setProductFilter] = useState('');
 
-  const visibleProducts = getPreparedProducts(products, { userFilter });
+  const visibleProducts = getPreparedProducts(
+    products,
+    { userFilter, productFilter },
+  );
+
+  const resetAll = () => {
+    if (userFilter) {
+      setUserFilter('');
+    }
+
+    if (productFilter) {
+      setProductFilter('');
+    }
+  };
+
+  const ProductList = ({ productsToShow }) => (
+    <table
+      data-cy="ProductTable"
+      className="table is-striped is-narrow is-fullwidth"
+    >
+      <thead>
+        <tr>
+          <th>
+            <span className="is-flex is-flex-wrap-nowrap">
+              ID
+
+              <a href="#/">
+                <span className="icon">
+                  <i data-cy="SortIcon" className="fas fa-sort" />
+                </span>
+              </a>
+            </span>
+          </th>
+
+          <th>
+            <span className="is-flex is-flex-wrap-nowrap">
+              Product
+
+              <a href="#/">
+                <span className="icon">
+                  <i data-cy="SortIcon" className="fas fa-sort-down" />
+                </span>
+              </a>
+            </span>
+          </th>
+
+          <th>
+            <span className="is-flex is-flex-wrap-nowrap">
+              Category
+
+              <a href="#/">
+                <span className="icon">
+                  <i data-cy="SortIcon" className="fas fa-sort-up" />
+                </span>
+              </a>
+            </span>
+          </th>
+
+          <th>
+            <span className="is-flex is-flex-wrap-nowrap">
+              User
+
+              <a href="#/">
+                <span className="icon">
+                  <i data-cy="SortIcon" className="fas fa-sort" />
+                </span>
+              </a>
+            </span>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {productsToShow.map(product => (
+          <tr
+            key={product.id}
+            data-cy="Product"
+          >
+            <td className="has-text-weight-bold" data-cy="ProductId">
+              {product.id}
+            </td>
+
+            <td data-cy="ProductName">{product.name}</td>
+            <td data-cy="ProductCategory">{`${product.icon} - ${product.categoryName}`}</td>
+
+            <td
+              data-cy="ProductUser"
+              className={classNames({
+                'has-text-link': product.userSex === 'm',
+                'has-text-danger': product.userSex === 'f',
+              })}
+            >
+              {product.userName}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  const ProductsPlaceholder = (
+    <p data-cy="NoMatchingMessage">
+      No products matching selected criteria
+    </p>
+  );
 
   return (
     <div className="section">
@@ -63,7 +179,8 @@ export const App = () => {
               </a>
               {usersFromServer.map(user => (
                 <a
-                  data-cy="FilterAllUsers"
+                  key={user.id}
+                  data-cy="FilterUser"
                   href="#/"
                   onClick={() => setUserFilter(user.name)}
                   className={classNames({
@@ -83,7 +200,8 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={productFilter}
+                  onChange={event => setProductFilter(event.target.value)}
                 />
 
                 <span className="icon is-left">
@@ -92,11 +210,14 @@ export const App = () => {
 
                 <span className="icon is-right">
                   {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
+                  {productFilter && (
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setProductFilter('')}
+                    />
+                  )}
                 </span>
               </p>
             </div>
@@ -147,6 +268,7 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={resetAll}
               >
                 Reset all filters
               </a>
@@ -155,92 +277,9 @@ export const App = () => {
         </div>
 
         <div className="box table-container">
-          <p data-cy="NoMatchingMessage">
-            No products matching selected criteria
-          </p>
-
-          <table
-            data-cy="ProductTable"
-            className="table is-striped is-narrow is-fullwidth"
-          >
-            <thead>
-              <tr>
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    ID
-
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    Product
-
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort-down" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    Category
-
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort-up" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    User
-
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {visibleProducts.map(product => (
-                <tr
-                  key={product.id}
-                  data-cy="Product"
-                >
-                  <td className="has-text-weight-bold" data-cy="ProductId">
-                    {product.id}
-                  </td>
-
-                  <td data-cy="ProductName">{product.name}</td>
-                  <td data-cy="ProductCategory">{`${product.icon} - ${product.categoryName}`}</td>
-
-                  <td
-                    data-cy="ProductUser"
-                    className={classNames({
-                      'has-text-link': product.userSex === 'm',
-                      'has-text-danger': product.userSex === 'f',
-                    })}
-                  >
-                    {product.userName}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {visibleProducts.length === 0
+            ? ProductsPlaceholder
+            : <ProductList productsToShow={visibleProducts} />}
         </div>
       </div>
     </div>
